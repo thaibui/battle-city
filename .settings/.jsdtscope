@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/css"/>
+	<classpathentry excluding="compiled/" kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/pong"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/pong/compiled"/>
+	<classpathentry excluding="compiled/" kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/roundball"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/roundball/compiled"/>
+	<classpathentry excluding="assets/|assets/spinner/" kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/tests"/>
+	<classpathentry excluding="spinner/" kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/tests/assets"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/tests/assets/spinner"/>
+	<classpathentry excluding="compiled/" kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/zlizer"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/demos/zlizer/compiled"/>
+	<classpathentry excluding="fill/|renderer/|animation/|shape/|helper/|customnodes/|ui/|helper/parser/|events/|audio/|transitions/" kind="src" path="digitalfruit-limejs-e7c6b54/lime/src"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/animation"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/audio"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/customnodes"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/events"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/fill"/>
+	<classpathentry excluding="parser/" kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/helper"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/helper/parser"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/renderer"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/shape"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/transitions"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/src/ui"/>
+	<classpathentry kind="src" path="digitalfruit-limejs-e7c6b54/lime/templates/default"/>
+	<classpathentry kind="con" path="org.eclipse.wst.jsdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path=""/>
+</classpath>
