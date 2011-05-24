@@ -7,6 +7,7 @@
 <script src="scripts/jquery-1.5.2.min.js"></script>
 <script src="scripts/jcanvas.min.js"></script>
 <script src="scripts/collision.js"></script>
+<script src="scripts/impact.js"></script>
 <script src="scripts/main.js"></script>
 <script src="scripts/debug.js"></script>
 <style>
@@ -24,8 +25,14 @@
 	}
 	#block1 {
 		position:absolute;
-		top:156px;
-		left:384px;
+		top:128px;
+		left:256px;
+	}
+	.block.even {
+		background: url("img/brown-clay-64-even.jpg");
+	}
+	.block.odd {
+		background: url("img/brown-clay-64-odd.jpg");
 	}
 	#player1 {
 		position:relative;		
@@ -93,7 +100,7 @@
 	</div>	
 	<div id="area">
 		<img src="" id="player1" class="tank" style="width:64px; height:64px;"/>
-		<img src="img/brown-clay-64.jpg" id="block1" class="block" style="width:64px; height:64px;"/>
+		<span id="block1" class="block even" style="width:64px; height:64px;"></span>
 	</div>
 </body>
 </html>

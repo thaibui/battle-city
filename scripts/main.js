@@ -2,19 +2,20 @@ var debug = 1;
 var frame = 0;
 var player1Name = 'player1';
 var player1 = '#player1'; // ID of player1
-var player1x = 300;
-var player1y = 150;
+var player1x = 0;
+var player1y = 128;
 var tankStop = 1; // stop tank movement
 var tankBullet = []; // 3 bullets
-var numBullet = 3;
+var numBullet = 2;
 for(i=0;i<numBullet;i++) tankBullet[i] = 0;
-var tankBulletMoveInterval = 9; // pixel, how fast the bullet will move per
 								// frame
 var baseUnit = 64; // base unit base on max(width, height) of the tank
 var areaWidth = 13*baseUnit;
 var areaHeight = 9*baseUnit;
-var refreshRate = 20; // millisecond
-var tankMoveInterval = 3; // pixel, indicating how fast the tank will move
+var refreshRate = 25; // millisecond (1000/50) * x = 128 / (1000/50)
+var tankSpeed = 128; // pixel per second
+var tankMoveInterval = (refreshRate * tankSpeed)  / 1000; // pixel, indicating how fast the tank will move
+var tankBulletMoveInterval = tankMoveInterval * 2.5; // pixel, how fast the bullet will move per
 var tankHasMovement = 0; // user move the tank
 var previousTankDirection = false; // face to the right by default
 var intervalDirection = 1; // currentTankDirection need to pixel to be
@@ -34,11 +35,11 @@ var moveKey = {shoot: 32}; // keycode for shooting
 var currentTankDirection = nav.right; // face to the right by default
 var renderList = []; // list of function need to be rendered
 var t;
-var Collision = new CollisionPos({width: areaWidth, 
+var Collision = new Collision({width: areaWidth, 
 							   height:areaHeight,
-							   className: ["block", "tank"],
-							   mapId: "area"});
-
+							   className: ["block", "tank"]});
+var Impact = new Impact();
+var debugFPS;
 $(document).ready(function(){
 	init();
 	Collision.init();
@@ -48,22 +49,22 @@ $(document).ready(function(){
 	renderList.push(bulletHandling);
 	t = setInterval(render, refreshRate);
 	if(debug){
-		dt1 = setInterval(function(){
-			$('#debug-fps').html(frame);
-			frame = 0
-		}, 1000);
+		debugFPS = $('#debug-fps');
+		setInterval(debugFPSFunc, 1000);
 	}
 });
 
+debugFPSFunc = function(){
+	debugFPS.html(frame);
+	refreshRate = 1000/frame;
+	tankMoveInterval = Math.round((refreshRate * tankSpeed)  / 1000); // pixel, indicating how fast the tank will move
+	tankBulletMoveInterval = Math.round(tankMoveInterval * 2.5); // pixel, how fast the bullet will move per
+	frame = 0;
+}
+var i,len; // temp vars
 render = function render(){
-	var func;
-	for(i=0;i<renderList.length;i++){
-		if(renderList[i] instanceof Object){
-			func = renderList[i];
-		} else {
-			func = new Function(renderList[i]);
-		}
-		func();
+	for(i=0,len=renderList.length;i<len;i++){
+		renderList[i]();
 	}
 	frame++;		
 }
@@ -84,22 +85,24 @@ start = function start(){
 function pause(){
 	tankStop = 1;
 }
-
+var p,pos,newPos,tempPos,width,height;
 function move(){
 	p = $(player1);
 	pos = p.position();
-				
+	width = p.width();
+	height = p.height();
+	
 	// Moving left-right
 	if(currentTankDirection == nav.right || currentTankDirection == nav.left){
 		newPos =  pos.left + tankMoveInterval * intervalDirection;
 		
 		currTankMoveInterval = tankMoveInterval; // by default, current move interval = configure interval
-		if(newPos + p.width() >= areaWidth){ // if newPos is out of boundary checking, reset the position
-			tempPos = areaWidth - 1 - p.width(); // width start from 0, so the last position in the map is not areaWidth but areaWidth - 1
+		if(newPos + width >= areaWidth){ // if newPos is out of boundary checking, reset the position
+			tempPos = areaWidth - 1 - width; // width start from 0, so the last position in the map is not areaWidth but areaWidth - 1
 			currTankMoveInterval = tankMoveInterval - (newPos - tempPos);
 			newPos = tempPos;
 		} else if (newPos < 0) {
-			currTankMoveInterval = tankMoveInterval + newPos; // newPos is a nevative number
+			currTankMoveInterval = tankMoveInterval + newPos; // newPos is a negative number
 			newPos = 0;
 		}
 		
@@ -111,19 +114,17 @@ function move(){
 				// grid (restrict to move freely)
 				fixTop = movementBindToGrid(pos.top);
 				fixTopInterval = pos.top - fixTop;
-				if(fixTop < areaHeight - p.height()){
+				if(fixTop < areaHeight - height){
 					checkCollision = true;
 					if(fixTopInterval > 0) { // going up
 						checkCollision = Collision.moveUp(player1Name, fixTopInterval);
 					} else {
-						if(fixTop + p.height() - fixTopInterval > areaHeight - 1)
-							fixTopInterval = areaHeight - 1 - p.height() - fixTop;
+						if(fixTop + height - fixTopInterval > areaHeight - 1)
+							fixTopInterval = areaHeight - 1 - height - fixTop;
 						checkCollision = Collision.moveDown(player1Name, Math.abs(fixTopInterval));
 					}
 					if(checkCollision)
 						p.css('top', fixTop + 'px');
-					else {
-					}
 				}
 			}
 			
@@ -136,16 +137,14 @@ function move(){
 			}
 			if(checkCollision)
 				p.css('left', newPos + 'px');
-			else {
-			}
 		}
 	} else {		
 		// Moving up-down
 		newPos = pos.top + tankMoveInterval * intervalDirection;
 		
 		currTankMoveInterval = tankMoveInterval; // by default, current interval = configure interval
-		if(newPos + p.height() >= areaHeight) {
-			tempPos = areaHeight - 1 - p.height(); // the last index of the height is not areaHeight, but areaHeight - 1
+		if(newPos + height >= areaHeight) {
+			tempPos = areaHeight - 1 - height; // the last index of the height is not areaHeight, but areaHeight - 1
 			currTankMoveInterval = tankMoveInterval - (newPos - tempPos);
 			newPos = tempPos;
 		} else if (newPos < 0) {
@@ -160,19 +159,17 @@ function move(){
 				// to grid
 				fixLeft = movementBindToGrid(pos.left);
 				fixLeftInterval = pos.left - fixLeft;
-				if(fixLeft < areaWidth - p.width()) {
+				if(fixLeft < areaWidth - width) {
 					checkCollision = true;
 					if(fixLeftInterval > 0) { // move left
 						checkCollision = Collision.moveLeft(player1Name, fixLeftInterval);
 					} else {
-						if(fixLeft + p.width() < areaWidth - 1) {
+						if(fixLeft + width < areaWidth - 1) {
 							checkCollision = Collision.moveRight(player1Name, Math.abs(fixLeftInterval));
 						}
 					}
 					if(checkCollision)
 						p.css('left', fixLeft + 'px');
-					else {
-					}
 				}
 			}
 			// changing collision param
@@ -184,8 +181,6 @@ function move(){
 			}
 			if(checkCollision)
 				p.css('top', newPos + 'px');
-			else {
-			}
 		}
 	}
 	
@@ -267,8 +262,9 @@ function movementHandling(e){
 			if(tankBullet[i] == 0){
 				p = $(player1);				
 				parent = p.parent();
-				parent.append('<img class="bullet bullet' + i + '" src="img/bullet-'+nav[currentTankDirection]+'.png" alt="'+currentTankDirection+'"/>');
-				bullet = parent.find('.bullet'+i);
+				bulletName = 'b_'+player1Name+i;
+				parent.append('<img id="'+bulletName+'" class="bullet '+ bulletName + '" src="img/bullet-'+nav[currentTankDirection]+'.png" alt="'+currentTankDirection+'"/>');
+				bullet = parent.find('#'+bulletName);
 									
 				if (currentTankDirection == nav.right) {
 					topPos = p.position().top + baseUnit / 2 - bullet.height() / 2;
@@ -286,7 +282,8 @@ function movementHandling(e){
 				bullet.css('position','absolute');
 				bullet.css('top', topPos + 'px');					
 				bullet.css('left', leftpos + 'px');
-				tankBullet[i] = 'bullet'+i;					
+				tankBullet[i] = bulletName;					
+				Collision.addObj(bulletName);
 				debug_log('SHOOT');
 				break;
 			}
@@ -299,46 +296,59 @@ bulletHandling = function bulletHandling(){
 	if(debug_pause_bullet_motion){
 		return;
 	}
-	for(i=0; i<tankBullet.length; i++){
-		if(tankBullet[i] != 0){
-			bullet = $('.'+tankBullet[i]);
+	for(var i=0, len = tankBullet.length; i<len; i++){
+		var tankId = tankBullet[i];
+		if(tankId != 0){
+			bullet = $('#'+tankId);
 			pos = bullet.position();
 			direction = bullet.attr('alt');
 			switch(parseInt(direction)){
 				case nav.left:
 					newLeft = pos.left - tankBulletMoveInterval;
-					if(newLeft >= 0){
+					if(newLeft >= 0 &&
+						Collision.moveLeft(tankId, tankBulletMoveInterval)){
 						bullet.css('left', newLeft + 'px');
 					} else {
 						tankBullet[i] = 0;
 						bullet.remove();							
+						Impact.right(Collision.impactId);
+						Collision.removeObj(tankId);
 					}
 				break;
 				case nav.right:
 					newLeft = pos.left + tankBulletMoveInterval;
-					if(newLeft + bullet.width() <= areaWidth){
+					if(newLeft + bullet.width() <= areaWidth &&
+						Collision.moveRight(tankId, tankBulletMoveInterval)){
 						bullet.css('left', newLeft + 'px');
 					} else {
 						tankBullet[i] = 0;
 						bullet.remove();
+						Impact.left(Collision.impactId);
+						Collision.removeObj(tankId);
 					}
 				break;
 				case nav.up:
 					newTop = pos.top - tankBulletMoveInterval;
-					if(newTop >= 0){
+					if(newTop >= 0 &&
+						Collision.moveUp(tankId, tankBulletMoveInterval)){
 						bullet.css('top',newTop + 'px');
 					} else {
 						tankBullet[i] = 0;
 						bullet.remove();
+						Impact.down(Collision.impactId);
+						Collision.removeObj(tankId);
 					}
 				break;
 				case nav.down:
 					newTop = pos.top + tankBulletMoveInterval;
-					if(newTop + bullet.height() <= areaHeight){
+					if(newTop + bullet.height() <= areaHeight &&
+						Collision.moveDown(tankId, tankBulletMoveInterval)){
 						bullet.css('top',newTop + 'px');
 					} else {
 						tankBullet[i] = 0;
 						bullet.remove();
+						Impact.top(Collision.impactId);
+						Collision.removeObj(tankId);
 					}
 				break;
 			}
