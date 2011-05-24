@@ -34,7 +34,7 @@ var moveKey = {shoot: 32}; // keycode for shooting
 var currentTankDirection = nav.right; // face to the right by default
 var renderList = []; // list of function need to be rendered
 var t;
-var Collision = new Collision({width: areaWidth, 
+var Collision = new CollisionPos({width: areaWidth, 
 							   height:areaHeight,
 							   className: ["block", "tank"],
 							   mapId: "area"});
@@ -42,7 +42,6 @@ var Collision = new Collision({width: areaWidth,
 $(document).ready(function(){
 	init();
 	Collision.init();
-	Collision.initDebug();
 	$(document).keydown(function (event){movementHandling(event);});
 	$(document).keyup(function (event){movementStoping(event)});
 	renderList.push(start);
@@ -124,7 +123,6 @@ function move(){
 					if(checkCollision)
 						p.css('top', fixTop + 'px');
 					else {
-						debug_log('encounterd at:'+Collision.lastEncounterX+','+Collision.lastEncounterY);
 					}
 				}
 			}
@@ -139,7 +137,6 @@ function move(){
 			if(checkCollision)
 				p.css('left', newPos + 'px');
 			else {
-				debug_log('encountered at:'+Collision.lastEncounterX+','+Collision.lastEncounterY);
 			}
 		}
 	} else {		
@@ -175,7 +172,6 @@ function move(){
 					if(checkCollision)
 						p.css('left', fixLeft + 'px');
 					else {
-						debug_log('encountered at:'+Collision.lastEncounterX+','+Collision.lastEncounterY);
 					}
 				}
 			}
@@ -189,7 +185,6 @@ function move(){
 			if(checkCollision)
 				p.css('top', newPos + 'px');
 			else {
-				debug_log('encountered at:'+Collision.lastEncounterX+','+Collision.lastEncounterY);
 			}
 		}
 	}
@@ -240,7 +235,6 @@ function movementHandling(e){
 			intervalDirection = (e.keyCode - currentTankDirection) / 2; // change
 																		// direction
 			// or intervalDirection = 1 - intervalDirection;
-			debug_log('Change Direction (R): '+nav[currentTankDirection]+' -> '+nav[e.keyCode]);
 			ignore = false;
 		}
 		
@@ -249,7 +243,6 @@ function movementHandling(e){
 				Math.abs(e.keyCode - currentTankDirection) == 3) {
 			if(e.keyCode <= 38) intervalDirection = -1;
 			else intervalDirection = 1;
-			debug_log('Change Direction (T): '+nav[currentTankDirection]+' -> '+nav[e.keyCode]);
 			ignore = false;
 		}
 		
@@ -356,7 +349,6 @@ bulletHandling = function bulletHandling(){
 function movementStoping(e){
 	if(e.keyCode <= nav.down && e.keyCode >= nav.left && e.keyCode == currentTankDirection){
 		debug_log('STOP');
-		Collision.drawDebug();
 		pause();
 	}		
 }

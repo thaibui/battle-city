@@ -79,7 +79,6 @@
 		<div class="top-panel">
 			<span>Reset</span><input type="checkbox" id="debug-reset" />
 			<span>Pause Bullet Motion</span><input type="checkbox" id="debug-pause-bullet-motion" />
-			<span>Enable Collision Debug<input type="checkbox" id="debug-collision" /></span>
 		</div>		
 		<ul>
 			<li><label>FPS:</label><span id="debug-fps"></span></li>
@@ -91,7 +90,6 @@
 				<textarea id="debug-log"></textarea>
 			</li>
 		</ul>
-		<canvas class="collision" width="832" height="576"></canvas>
 	</div>	
 	<div id="area">
 		<img src="" id="player1" class="tank" style="width:64px; height:64px;"/>
