@@ -5,18 +5,21 @@ var player1 = '#player1'; // ID of player1
 var player1x = 0;
 var player1y = 128;
 var tankStop = 1; // stop tank movement
-var tankBullet = []; // 3 bullets
-var numBullet = 2;
+var tankBullet = []; // contains the name of the bullet (html id)
+var numBullet = 4;
 for(i=0;i<numBullet;i++) tankBullet[i] = 0;
 								// frame
 var baseUnit = 64; // base unit base on max(width, height) of the tank
 var areaWidth = 13*baseUnit;
 var areaHeight = 9*baseUnit;
-var refreshRate = 25; // millisecond (1000/50) * x = 128 / (1000/50)
-var tankSpeed = 128; // pixel per second
+// 16 is equivalent to 60hz monitor refresh rate
+var refreshRate = 16; // millisecond (1000/50) * x = 128 / (1000/50)
+var bulletRereshRate = 25; // only update the new position of the bullet every x miliseconds		
+var tankSpeed = 120; // pixel per second
 var tankMoveInterval = (refreshRate * tankSpeed)  / 1000; // pixel, indicating how fast the tank will move
-var tankBulletMoveInterval = tankMoveInterval * 2.5; // pixel, how fast the bullet will move per
-var tankHasMovement = 0; // user move the tank
+var tankBulletRelativeSpeed = 5; // speed of the bullet proportion to the speed of the tank
+var tankBulletMoveInterval = tankMoveInterval * tankBulletRelativeSpeed; // pixel, how fast the bullet will move per
+var tankHasMovement = 0; // user move the tank, or the tank will just keep moving forward!
 var previousTankDirection = false; // face to the right by default
 var intervalDirection = 1; // currentTankDirection need to pixel to be
 							// increased
@@ -39,10 +42,14 @@ var Collision = new Collision({width: areaWidth,
 							   height:areaHeight,
 							   className: ["block", "tank"]});
 var Impact = new Impact();
+var Block = new Block();
+var Position = new Position();
 var debugFPS;
+	
 $(document).ready(function(){
 	init();
 	Collision.init();
+	Position.Init();
 	$(document).keydown(function (event){movementHandling(event);});
 	$(document).keyup(function (event){movementStoping(event)});
 	renderList.push(start);
@@ -54,15 +61,16 @@ $(document).ready(function(){
 	}
 });
 
-debugFPSFunc = function(){
+function debugFPSFunc(){
 	debugFPS.html(frame);
 	refreshRate = 1000/frame;
 	tankMoveInterval = Math.round((refreshRate * tankSpeed)  / 1000); // pixel, indicating how fast the tank will move
-	tankBulletMoveInterval = Math.round(tankMoveInterval * 2.5); // pixel, how fast the bullet will move per
+	tankBulletMoveInterval = Math.round(tankMoveInterval * tankBulletRelativeSpeed); // pixel, how fast the bullet will move per
 	frame = 0;
 }
-var i,len; // temp vars
-render = function render(){
+
+function render(){
+	var i,len; // temp vars
 	for(i=0,len=renderList.length;i<len;i++){
 		renderList[i]();
 	}
@@ -70,9 +78,10 @@ render = function render(){
 }
 
 function init(){
-	$(player1).attr('src', 'img/tank_player-'+nav[currentTankDirection]+'.png');
-	$(player1).css('left', player1x + 'px');
-	$(player1).css('top', player1y + 'px');
+	var p = $(player1);
+	p.attr('src', 'img/tank_player-'+nav[currentTankDirection]+'.png');
+	p.css('left', player1x + 'px');
+	p.css('top', player1y + 'px');
 	$('#area').width(areaWidth).height(areaHeight);
 }
 
@@ -85,13 +94,15 @@ start = function start(){
 function pause(){
 	tankStop = 1;
 }
-var p,pos,newPos,tempPos,width,height;
+
 function move(){
-	p = $(player1);
-	pos = p.position();
-	width = p.width();
-	height = p.height();
-	
+	// Init player position
+	var pos = Position.Get(player1Name),
+		width = pos.width,
+		height = pos.height,
+		left = pos.left,
+		top = pos.top,
+		newPos,tempPos;
 	// Moving left-right
 	if(currentTankDirection == nav.right || currentTankDirection == nav.left){
 		newPos =  pos.left + tankMoveInterval * intervalDirection;
@@ -124,7 +135,7 @@ function move(){
 						checkCollision = Collision.moveDown(player1Name, Math.abs(fixTopInterval));
 					}
 					if(checkCollision)
-						p.css('top', fixTop + 'px');
+						top = fixTop;
 				}
 			}
 			
@@ -136,7 +147,7 @@ function move(){
 				checkCollision = Collision.moveLeft(player1Name, currTankMoveInterval);
 			}
 			if(checkCollision)
-				p.css('left', newPos + 'px');
+				left = newPos;
 		}
 	} else {		
 		// Moving up-down
@@ -169,7 +180,7 @@ function move(){
 						}
 					}
 					if(checkCollision)
-						p.css('left', fixLeft + 'px');
+						left = fixLeft;
 				}
 			}
 			// changing collision param
@@ -180,16 +191,15 @@ function move(){
 				checkCollision = Collision.moveUp(player1Name, currTankMoveInterval);
 			}
 			if(checkCollision)
-				p.css('top', newPos + 'px');
+				top = newPos;
 		}
 	}
 	
+	Position.Update(player1Name, left, top);
+	
 	if(debug){
-		pos = p.position();
-		player1x = pos.left;
-		player1y = pos.top;
-		$('#debug-tank1x').html(pos.left);
-		$('#debug-tank1y').html(pos.top);
+		$('#debug-tank1x').html(left);
+		$('#debug-tank1y').html(top);
 	}
 }
 
@@ -264,26 +274,29 @@ function movementHandling(e){
 				parent = p.parent();
 				bulletName = 'b_'+player1Name+i;
 				parent.append('<img id="'+bulletName+'" class="bullet '+ bulletName + '" src="img/bullet-'+nav[currentTankDirection]+'.png" alt="'+currentTankDirection+'"/>');
-				bullet = parent.find('#'+bulletName);
-									
+				bullet = $('#'+bulletName, parent);
+				height = bullet.height();
+				width = bullet.width();
+				pos = Position.Get(player1Name);
+				
+				// Calculating initial direction of the buttlet
 				if (currentTankDirection == nav.right) {
-					topPos = p.position().top + baseUnit / 2 - bullet.height() / 2;
-					leftpos = p.position().left + baseUnit;
+					topPos = pos.top + baseUnit / 2 - height / 2;
+					leftPos = pos.left + baseUnit;
 				} else if (currentTankDirection == nav.left) {
-					topPos = p.position().top + (baseUnit / 2) - (bullet.height() / 2);
-					leftpos = p.position().left - bullet.width();
+					topPos = pos.top + (baseUnit / 2) - (height / 2);
+					leftPos = pos.left - width;
 				} else if (currentTankDirection == nav.up) {
-					topPos = p.position().top - bullet.height();
-					leftpos = p.position().left + (baseUnit / 2) - (bullet.width() / 2);
+					topPos = pos.top - height;
+					leftPos = pos.left + (baseUnit / 2) - (width / 2);
 				} else {
-					topPos = p.position().top + baseUnit;
-					leftpos = p.position().left + (baseUnit / 2) - (bullet.width() / 2);
+					topPos = pos.top + baseUnit;
+					leftPos = pos.left + (baseUnit / 2) - (width / 2);
 				}
-				bullet.css('position','absolute');
-				bullet.css('top', topPos + 'px');					
-				bullet.css('left', leftpos + 'px');
+				bullet.css('cssText', 'position:absolute; top:'+topPos+'px;left:'+leftPos+'px;');
 				tankBullet[i] = bulletName;					
 				Collision.addObj(bulletName);
+				Position.InitObj(bulletName);
 				debug_log('SHOOT');
 				break;
 			}
@@ -291,66 +304,88 @@ function movementHandling(e){
 	}
 }
 
-		
+var bulletRateCounter = 0;
 bulletHandling = function bulletHandling(){
 	if(debug_pause_bullet_motion){
 		return;
 	}
-	for(var i=0, len = tankBullet.length; i<len; i++){
-		var tankId = tankBullet[i];
-		if(tankId != 0){
-			bullet = $('#'+tankId);
-			pos = bullet.position();
-			direction = bullet.attr('alt');
-			switch(parseInt(direction)){
-				case nav.left:
-					newLeft = pos.left - tankBulletMoveInterval;
-					if(newLeft >= 0 &&
-						Collision.moveLeft(tankId, tankBulletMoveInterval)){
-						bullet.css('left', newLeft + 'px');
-					} else {
-						tankBullet[i] = 0;
-						bullet.remove();							
-						Impact.right(Collision.impactId);
-						Collision.removeObj(tankId);
-					}
-				break;
-				case nav.right:
-					newLeft = pos.left + tankBulletMoveInterval;
-					if(newLeft + bullet.width() <= areaWidth &&
-						Collision.moveRight(tankId, tankBulletMoveInterval)){
-						bullet.css('left', newLeft + 'px');
-					} else {
-						tankBullet[i] = 0;
-						bullet.remove();
-						Impact.left(Collision.impactId);
-						Collision.removeObj(tankId);
-					}
-				break;
-				case nav.up:
-					newTop = pos.top - tankBulletMoveInterval;
-					if(newTop >= 0 &&
-						Collision.moveUp(tankId, tankBulletMoveInterval)){
-						bullet.css('top',newTop + 'px');
-					} else {
-						tankBullet[i] = 0;
-						bullet.remove();
-						Impact.down(Collision.impactId);
-						Collision.removeObj(tankId);
-					}
-				break;
-				case nav.down:
-					newTop = pos.top + tankBulletMoveInterval;
-					if(newTop + bullet.height() <= areaHeight &&
-						Collision.moveDown(tankId, tankBulletMoveInterval)){
-						bullet.css('top',newTop + 'px');
-					} else {
-						tankBullet[i] = 0;
-						bullet.remove();
-						Impact.top(Collision.impactId);
-						Collision.removeObj(tankId);
-					}
-				break;
+	// handler for bullet refresh rate
+	bulletRateCounter += refreshRate;
+	if((bulletRateCounter / bulletRereshRate) >= 1){
+		bulletRateCounter = bulletRateCounter % bulletRereshRate;
+		movement();
+	}
+	
+	movement = function(){
+		for(var i=0, len = tankBullet.length; i<len; i++){
+			var bulletId = tankBullet[i];
+			if(bulletId != 0){
+				pos = Position.Get(bulletId);
+				direction = pos.direction;
+				width = pos.width;
+				height = pos.height;
+				switch(parseInt(direction)){
+					case nav.left:
+						newLeft = pos.left - tankBulletMoveInterval;
+						if(newLeft + width >= 0 && // bullet will go through the border until it's completely gone
+							Collision.moveLeft(bulletId, tankBulletMoveInterval)){
+							Position.Update(bulletId, newLeft, pos.top);
+						} else {
+							tankBullet[i] = 0;
+							bullet = $('#'+bulletId);
+							bullet.remove();							
+							Impact.right(Collision.impactId);
+							Collision.impactId = null;
+							Collision.removeObj(bulletId);
+							Position.Remove(bulletId);
+						}
+					break;
+					case nav.right:
+						newLeft = pos.left + tankBulletMoveInterval;
+						if(newLeft <= areaWidth &&
+							Collision.moveRight(bulletId, tankBulletMoveInterval)){
+							Position.Update(bulletId, newLeft, pos.top);
+						} else {
+							tankBullet[i] = 0;
+							bullet = $('#'+bulletId);
+							bullet.remove();
+							Impact.left(Collision.impactId);
+							Collision.impactId = null;
+							Collision.removeObj(bulletId);
+							Position.Remove(bulletId);
+						}
+					break;
+					case nav.up:
+						newTop = pos.top - tankBulletMoveInterval;
+						if(newTop >= 0 &&
+							Collision.moveUp(bulletId, tankBulletMoveInterval)){
+							Position.Update(bulletId, pos.left, newTop);
+						} else {
+							tankBullet[i] = 0;
+							bullet = $('#'+bulletId);
+							bullet.remove();
+							Impact.down(Collision.impactId);
+							Collision.impactId = null;
+							Collision.removeObj(bulletId);
+							Position.Remove(bulletId);
+						}
+					break;
+					case nav.down:
+						newTop = pos.top + tankBulletMoveInterval;
+						if(newTop + height <= areaHeight &&
+							Collision.moveDown(bulletId, tankBulletMoveInterval)){
+							Position.Update(bulletId, pos.left, newTop);
+						} else {
+							tankBullet[i] = 0;
+							bullet = $('#'+bulletId);
+							bullet.remove();
+							Impact.top(Collision.impactId);
+							Collision.impactId = null;
+							Collision.removeObj(bulletId);
+							Position.Remove(bulletId);
+						}
+					break;
+				}
 			}
 		}
 	}

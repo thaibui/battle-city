@@ -4,10 +4,12 @@
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Battle City</title>
 </head>
-<script src="scripts/jquery-1.5.2.min.js"></script>
+<script src="scripts/jquery-1.6.1.js"></script>
 <script src="scripts/jcanvas.min.js"></script>
 <script src="scripts/collision.js"></script>
+<script src="scripts/position.js"></script>
 <script src="scripts/impact.js"></script>
+<script src="scripts/block.js"></script>
 <script src="scripts/main.js"></script>
 <script src="scripts/debug.js"></script>
 <style>
@@ -98,6 +100,18 @@
 			</li>
 		</ul>
 	</div>	
+	<div id="loading">
+		<img src="img/bullet-down.png" />
+		<img src="img/bullet-up.png" />
+		<img src="img/bullet-left.png" />
+		<img src="img/bullet-right.png" />
+		<img src="img/tank_player-down.png" />
+		<img src="img/tank_player-left.png" />
+		<img src="img/tank_player-right.png" />
+		<img src="img/tank_player-up.png" />
+		<img src="img/brown-clay-64-even.jpg" />
+		<img src="img/brown-clay-64-odd.jpg" />
+	</div>
 	<div id="area">
 		<img src="" id="player1" class="tank" style="width:64px; height:64px;"/>
 		<span id="block1" class="block even" style="width:64px; height:64px;"></span>

@@ -1,0 +1,13 @@
+syntax: glob
+scripts/main.js~
+scripts/impact.js~
+scripts/collision.js~
+scripts/.main.js.swp
+scripts/.impact.js.swp
+scripts/.collision.js.swp
+desktop.ini
+.tmp_index.html.98163~
+.tmp_index.html.95931~
+.tmp_index.html.66705~
+.tmp_index.html.36731~
+.dropbox

@@ -1,3 +1,8 @@
+/**
+ * Design to check any collision can happen between 2 objects
+ * every movements of object must use the checking function
+ * of this class before physically move the object.
+ */
 function Collision(option) {
 	this.mapWidth = option.width;
 	this.mapHeight = option.height;
@@ -28,7 +33,7 @@ function Collision(option) {
 	}
 	
 	this.removeObj = function(objectId){
-		for(var i=0;i<this.obj.length;i++){
+		for(var i=0,len=this.obj.length;i<len;i++){
 			if(this.obj[i] == objectId){
 				delete this.obj[objectId];
 				this.obj.splice(i,1);
@@ -36,33 +41,15 @@ function Collision(option) {
 			}
 		}
 	}
-	var objTop,objLeft,objWidth,objHeight,obj;
-	this.moveLeft = function(objectId, distance) {
-		obj = $('#'+objectId);
-		this.currObjId = objectId;
-		objTop = obj.position().top;
-		objLeft = obj.position().left;
-		objWidth = obj.width();
-		objHeight = obj.height();
-		
-		if(!this.checkRect(objTop, 
-							objLeft-distance, 
-							distance, 
-							objHeight)) // distance - 1 to exclude the current line of this obj
-			return false;
-		return true;
-	}
-	
 	/**
 	 * Check value of an rectangle to see if an object already there
 	 */
-	var i,obj,id,p,len,x1,y1,x2,y2,x3,y3,x4,y4,X1,X2,Y1,Y2; // temp vars
 	this.checkRect = function(top, left, width, height){
 		// coordinate of main object
-		x1 = left;			y1 = top;				// first corner (top,left)
-		x2 = left+width;	y2 = top;				// 2nd corner (top,right)
-		x3 = left;			y3 = top+height;   		// bottom,left corner
-		x4 = x2;			y4 = y3;				// bottom,right corner
+		var x1 = left,			y1 = top,				// first corner (top,left)
+			x2 = left+width,	y2 = top,				// 2nd corner (top,right)
+			x3 = left,		y3 = top+height,   		// bottom,left corner
+			x4 = x2,		y4 = y3;				// bottom,right corner
 		
 		for(i=0,len=this.obj.length;i<len;i++){
 			id = this.obj[i];
@@ -119,49 +106,53 @@ function Collision(option) {
 		return true;
 	}
 	
-	this.moveRight = function(objectId, distance) {
-		obj = $('#' + objectId);
-		this.currObjId = objectId;
-		objTop = obj.position().top;
-		objLeft = obj.position().left;
-		objWidth = obj.width();
-		objHeight = obj.height();
+	this.moveLeft = function(objectId, distance) {
+		var pos = Position.obj[objectId],
+			objTop = pos.top,
+			objLeft = pos.left,
+			objWidth = pos.width,
+			objHeight = pos.height;
 		
-		if(!this.checkRect(objTop, 
-							objLeft+objWidth+1, 
-							distance, 
-							objHeight)) // distance - 1 to exclude the current line of this obj
+		this.currObjId = objectId;
+		if(!this.checkRect(objTop, objLeft-distance, distance,objHeight)) // distance - 1 to exclude the current line of this obj
+			return false;
+		return true;
+	}
+	
+	this.moveRight = function(objectId, distance) {
+		var pos = Position.obj[objectId],
+			objTop = pos.top,
+			objLeft = pos.left,
+			objWidth = pos.width,
+			objHeight = pos.height;
+		this.currObjId = objectId;
+		
+		if(!this.checkRect(objTop, objLeft+objWidth+1, distance, objHeight)) // distance - 1 to exclude the current line of this obj
 			return false;
 		return true;
 	}
 	
 	this.moveDown = function(objectId, distance) {
-		obj = $('#' + objectId);
-		this.currObjId = objectId;
-		objTop = obj.position().top;
-		objLeft = obj.position().left;
-		objWidth = obj.width();
-		objHeight = obj.height();
+		var pos = Position.obj[objectId],
+			objTop = pos.top,
+			objLeft = pos.left,
+			objWidth = pos.width,
+			objHeight = pos.height;
 		
-		if(!this.checkRect(objTop+objHeight+1, 
-							objLeft, 
-							objWidth, 
-							distance)) // distance - 1 to exclude the current line of this obj
+		this.currObjId = objectId;
+		
+		if(!this.checkRect(objTop+objHeight+1, objLeft, objWidth, distance)) // distance - 1 to exclude the current line of this obj
 			return false;
 		return true;
 	}
-	this.moveUp = function(objectId, distance) {
-		obj = $('#' + objectId);
+	this.moveUp = function(objectId, distance) {
+		var pos = Position.obj[objectId],
+			objTop = pos.top,
+			objLeft = pos.left,
+			objWidth = pos.width,
+			objHeight = pos.height;
 		this.currObjId = objectId;
-		objTop = obj.position().top;
-		objLeft = obj.position().left;
-		objWidth = obj.width();
-		objHeight = obj.height();
-		
-		if(!this.checkRect(objTop-distance, 
-							objLeft, 
-							objWidth, 
-							distance)) // distance - 1 to exclude the current line of this obj
+		if(!this.checkRect(objTop-distance, objLeft, objWidth, distance)) // distance - 1 to exclude the current line of this obj
 			return false;
 		return true;
 	}
