@@ -38,7 +38,7 @@ var moveKey = {shoot: 32}; // keycode for shooting
 var currentTankDirection = nav.right; // face to the right by default
 var renderList = []; // list of function need to be rendered
 var t;
-var Collision = new Collision({width: areaWidth, 
+var Collision = new Collision({width: areaWidth,
 							   height:areaHeight,
 							   className: ["block", "tank"]});
 var Impact = new Impact();
@@ -78,6 +78,29 @@ function render(){
 }
 
 function init(){
+    // Create area canvas
+    /*
+     <div id="area">
+     <img src="" id="player1" class="tank" style="width:64px; height:64px;"/>
+     <span id="block1" class="block even" style="width:64px; height:64px;"></span>
+     </div>
+     */
+    B.load({"scriptDir": B.defaults.scriptDir}, [{"name": "config.js", "dir": ""}])
+    B.ready(function(){
+        B.DOM.new("div")
+            .set("class", Config.playground.class)
+            .set("id", Config.playground.id)
+            .newChild(B.DOM.new("img")
+                .set("id", Config.player.tank.id)
+                .set("class", Config.player.tank.class)
+                .set("style", Config.player.tank.style))
+            .newChild(B.DOM.new("span")
+                .set("id", Config.playground.objects.block.id)
+                .set("class", Config.playground.objects.block.class)
+                .set("style", Config.playground.objects.block.style))
+            .appendToBody()
+    })
+
 	var p = $(player1);
 	p.attr('src', 'img/tank_player-'+nav[currentTankDirection]+'.png');
 	p.css('left', player1x + 'px');

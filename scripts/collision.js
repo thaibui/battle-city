@@ -9,10 +9,11 @@ function Collision(option) {
 	this.className = option.className;
 	this.obj = new Array();
 	this.currObjId;		 // current object id that are using to check collision with object on the map
-	this.safeBorder = 0; // when checking for colision, we add the border to ensure the correctness of the checking
-	this.impactId; 		// id of impact object
+	this.safeBorder = 0; // when checking for collision, we add the border to ensure the correctness of the checking
+	this.impactId; 		// id of impacted object
+
 	/**
-	 * Init all block in the map
+	 * Init all blocks in the map
 	 */
 	this.init = function() {
 		// Get all object in the map
@@ -41,8 +42,9 @@ function Collision(option) {
 			}
 		}
 	}
+
 	/**
-	 * Check value of an rectangle to see if an object already there
+	 * Check the value of an rectangle to see if an object is already there
 	 */
 	this.checkRect = function(top, left, width, height){
 		// coordinate of main object
@@ -145,6 +147,7 @@ function Collision(option) {
 			return false;
 		return true;
 	}
+
 	this.moveUp = function(objectId, distance) {
 		var pos = Position.obj[objectId],
 			objTop = pos.top,
